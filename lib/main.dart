@@ -29,15 +29,17 @@ class MizanApp extends StatelessWidget {
 }
 
 class FishRecord {
-  FishRecord({required this.name, List<List<double>>? batches})
+  FishRecord({required this.name, List<List<double>>? batches, this.note = ''})
       : batches = batches ?? <List<double>>[];
   final String name;
   final List<List<double>> batches;
+  String note;
   double get total =>
       batches.fold(0, (sum, batch) => sum + batch.fold(0, (s, w) => s + w));
-  Map<String, dynamic> toJson() => {'name': name, 'batches': batches};
+  Map<String, dynamic> toJson() => {'name': name, 'batches': batches, 'note': note};
   factory FishRecord.fromJson(Map<String, dynamic> json) => FishRecord(
         name: json['name'] as String,
+        note: (json['note'] as String?) ?? '',
         batches: (json['batches'] as List? ?? [])
             .map((b) => (b as List).map((v) => (v as num).toDouble()).toList())
             .toList(),
@@ -211,6 +213,53 @@ class _WeightsHomeState extends State<WeightsHome> {
     return pdf.save();
   }
 
+  Future<void> _editNote(FishRecord fish) async {
+    final controller = TextEditingController(text: fish.note);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('ملاحظات \${fish.name}'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 4,
+          textDirection: TextDirection.rtl,
+          decoration: const InputDecoration(
+            hintText: 'اكتب ملاحظات هذا النوع هنا',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('حفظ الملاحظة'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (value != null) {
+      setState(() => fish.note = value);
+      await _save();
+      _message('تم حفظ الملاحظة');
+    }
+  }
+
+  void _openPreview() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReportPreviewPage(
+          fish: _fish,
+          number: _number,
+          onSavePdf: _sharePdf,
+          onPrint: _printPdf,
+        ),
+      ),
+    );
+  }
+
   Future<void> _sharePdf() async {
     if (_fish.isEmpty) return _message('لا توجد بيانات لتصديرها');
     await Printing.sharePdf(
@@ -251,7 +300,11 @@ class _WeightsHomeState extends State<WeightsHome> {
           title: const Text('ميزان الأسماك'),
           actions: [
             IconButton(
-                tooltip: 'مشاركة PDF',
+                tooltip: 'معاينة التقرير الكامل',
+                onPressed: _openPreview,
+                icon: const Icon(Icons.preview)),
+            IconButton(
+                tooltip: 'حفظ / مشاركة PDF',
                 onPressed: _sharePdf,
                 icon: const Icon(Icons.share)),
             IconButton(
@@ -272,6 +325,30 @@ class _WeightsHomeState extends State<WeightsHome> {
             ? const Center(child: CircularProgressIndicator())
             : Column(children: [
                 _entryPanel(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: Row(children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _openPreview,
+                        icon: const Icon(Icons.preview),
+                        label: const Text('معاينة الأصناف'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _sharePdf,
+                        icon: const Icon(Icons.picture_as_pdf),
+                        label: const Text('حفظ PDF'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF263746),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
                 Expanded(
                   child: _fish.isEmpty
                       ? const Center(
@@ -387,6 +464,25 @@ class _WeightsHomeState extends State<WeightsHome> {
                   ],
                 ),
               ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: OutlinedButton.icon(
+                  onPressed: () => _editNote(fish),
+                  icon: const Icon(Icons.note_alt_outlined),
+                  label: Text(fish.note.isEmpty ? 'إضافة ملاحظة' : 'تعديل الملاحظة'),
+                ),
+              ),
+              if (fish.note.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7E8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text('ملاحظات: \${fish.note}', textDirection: TextDirection.rtl),
+                ),
             ],
           ),
         ),
@@ -444,4 +540,142 @@ class _WeightsHomeState extends State<WeightsHome> {
       ]),
     );
   }
+}
+
+
+class ReportPreviewPage extends StatelessWidget {
+  const ReportPreviewPage({
+    super.key,
+    required this.fish,
+    required this.number,
+    required this.onSavePdf,
+    required this.onPrint,
+  });
+
+  final List<FishRecord> fish;
+  final String Function(double) number;
+  final VoidCallback onSavePdf;
+  final VoidCallback onPrint;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = fish.fold<double>(0, (sum, item) => sum + item.total);
+    final count = fish.fold<int>(
+      0,
+      (sum, item) => sum + item.batches.fold<int>(0, (n, b) => n + b.length),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('معاينة كشف الأصناف'),
+        actions: [
+          IconButton(tooltip: 'حفظ PDF', onPressed: onSavePdf, icon: const Icon(Icons.picture_as_pdf)),
+          IconButton(tooltip: 'طباعة', onPressed: onPrint, icon: const Icon(Icons.print)),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(14),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const Text('التقرير الإجمالي', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _stat('عدد الأنواع', '\${fish.length}'),
+                      _stat('عدد الوزنات', '\$count'),
+                      _stat('الإجمالي كجم', number(total)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text('مجموع كل نوع من الأسماك', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                for (final item in fish)
+                  ListTile(
+                    leading: const Icon(Icons.set_meal, color: Color(0xFFB88935)),
+                    title: Text(item.name),
+                    subtitle: Text('\${item.batches.fold<int>(0, (n, b) => n + b.length)} وزنة'),
+                    trailing: Text('\${number(item.total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('الإجمالي العام', style: TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: Text('\${number(total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF87601F))),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text('تفاصيل الأعمدة والملاحظات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          for (final item in fish)
+            Card(
+              margin: const EdgeInsets.only(top: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(item.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                    Text('مجموع الصنف: \${number(item.total)} كجم'),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var i = 0; i < item.batches.length; i++)
+                            Container(
+                              width: 112,
+                              margin: const EdgeInsetsDirectional.only(end: 8),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(border: Border.all(color: const Color(0xFFD6C7A9)), borderRadius: BorderRadius.circular(8)),
+                              child: Column(
+                                children: [
+                                  Text('العمود \${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  for (var j = 0; j < 10; j++)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 3),
+                                      child: Text(j < item.batches[i].length ? number(item.batches[i][j]) : '—'),
+                                    ),
+                                  const Divider(),
+                                  Text('المجموع: \${number(item.batches[i].fold<double>(0, (s, w) => s + w))}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (item.note.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('ملاحظات: \${item.note}', textDirection: TextDirection.rtl),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 14),
+          FilledButton.icon(onPressed: onSavePdf, icon: const Icon(Icons.picture_as_pdf), label: const Text('حفظ ومشاركة التقرير PDF')),
+          OutlinedButton.icon(onPressed: onPrint, icon: const Icon(Icons.print), label: const Text('طباعة التقرير')),
+        ],
+      ),
+    );
+  }
+
+  Widget _stat(String label, String value) => Column(
+    children: [
+      Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      Text(label, style: const TextStyle(color: Colors.black54)),
+    ],
+  );
 }
