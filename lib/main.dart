@@ -158,7 +158,7 @@ class _WeightsHomeState extends State<WeightsHome> {
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
                       child: pw.Text(fish.name, textAlign: pw.TextAlign.center)),
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
-                      child: pw.Text('\${fish.batches.fold<int>(0, (n, b) => n + b.length)}',
+                      child: pw.Text('${fish.batches.fold<int>(0, (n, b) => n + b.length)}',
                         textAlign: pw.TextAlign.center)),
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
                       child: pw.Text(_number(fish.total), textAlign: pw.TextAlign.center)),
@@ -170,7 +170,7 @@ class _WeightsHomeState extends State<WeightsHome> {
                       child: pw.Text('الإجمالي العام', style: pw.TextStyle(font: arabicFont),
                         textAlign: pw.TextAlign.center)),
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
-                      child: pw.Text('\${_fish.fold<int>(0, (n, f) => n + f.batches.fold<int>(0, (m, b) => m + b.length))}',
+                      child: pw.Text('${_fish.fold<int>(0, (n, f) => n + f.batches.fold<int>(0, (m, b) => m + b.length))}',
                         textAlign: pw.TextAlign.center)),
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
                       child: pw.Text(_number(_fish.fold<double>(0, (n, f) => n + f.total)),
@@ -271,7 +271,7 @@ class _WeightsHomeState extends State<WeightsHome> {
     final value = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('ملاحظات \${fish.name}'),
+        title: Text('ملاحظات ${fish.name}'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -534,7 +534,7 @@ class _WeightsHomeState extends State<WeightsHome> {
                     color: const Color(0xFFFFF7E8),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('ملاحظات: \${fish.note}', textDirection: TextDirection.rtl),
+                  child: Text('ملاحظات: ${fish.note}', textDirection: TextDirection.rtl),
                 ),
             ],
           ),
@@ -638,8 +638,8 @@ class ReportPreviewPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _stat('عدد الأنواع', '\${fish.length}'),
-                      _stat('عدد الوزنات', '\$count'),
+                      _stat('عدد الأنواع', '${fish.length}'),
+                      _stat('عدد الوزنات', '$count'),
                       _stat('الإجمالي كجم', number(total)),
                     ],
                   ),
@@ -657,13 +657,13 @@ class ReportPreviewPage extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.set_meal, color: Color(0xFFB88935)),
                     title: Text(item.name),
-                    subtitle: Text('\${item.batches.fold<int>(0, (n, b) => n + b.length)} وزنة'),
-                    trailing: Text('\${number(item.total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('${item.batches.fold<int>(0, (n, b) => n + b.length)} وزنة'),
+                    trailing: Text('${number(item.total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 const Divider(height: 1),
                 ListTile(
                   title: const Text('الإجمالي العام', style: TextStyle(fontWeight: FontWeight.bold)),
-                  trailing: Text('\${number(total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF87601F))),
+                  trailing: Text('${number(total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF87601F))),
                 ),
               ],
             ),
@@ -679,7 +679,7 @@ class ReportPreviewPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(item.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                    Text('مجموع الصنف: \${number(item.total)} كجم'),
+                    Text('مجموع الصنف: ${number(item.total)} كجم'),
                     const SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -695,14 +695,14 @@ class ReportPreviewPage extends StatelessWidget {
                               decoration: BoxDecoration(border: Border.all(color: const Color(0xFFD6C7A9)), borderRadius: BorderRadius.circular(8)),
                               child: Column(
                                 children: [
-                                  Text('العمود \${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('العمود ${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   for (var j = 0; j < 10; j++)
                                     Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 3),
                                       child: Text(j < item.batches[i].length ? number(item.batches[i][j]) : '—'),
                                     ),
                                   const Divider(),
-                                  Text('المجموع: \${number(item.batches[i].fold<double>(0, (s, w) => s + w))}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('المجموع: ${number(item.batches[i].fold<double>(0, (s, w) => s + w))}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -711,7 +711,7 @@ class ReportPreviewPage extends StatelessWidget {
                     ),
                     if (item.note.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text('ملاحظات: \${item.note}', textDirection: TextDirection.rtl),
+                      Text('ملاحظات: ${item.note}', textDirection: TextDirection.rtl),
                     ],
                   ],
                 ),
