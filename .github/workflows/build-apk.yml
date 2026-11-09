@@ -28,7 +28,7 @@ jobs:
       - name: Download Arabic PDF font
         run: |
           mkdir -p assets/fonts
-          curl -L --fail --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/NotoSansArabic%5Bwght%5D.ttf" -o assets/fonts/NotoSansArabic.ttf
+          curl -L --fail --retry 3 "https://raw.githubusercontent.com/notofonts/notofonts.github.io/main/fonts/NotoSansArabic/hinted/ttf/NotoSansArabic-Regular.ttf" -o assets/fonts/NotoSansArabic.ttf
       - name: Generate Android project files
         run: flutter create . --org com.alshaheen --project-name mizan_alasmak --platforms=android --no-pub
       - name: Get dependencies
