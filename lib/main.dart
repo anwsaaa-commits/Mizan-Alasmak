@@ -163,20 +163,6 @@ class _WeightsHomeState extends State<WeightsHome> {
                     pw.Padding(padding: const pw.EdgeInsets.all(9),
                       child: pw.Text(_number(fish.total), textAlign: pw.TextAlign.center)),
                   ]),
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-                  children: [
-                    pw.Padding(padding: const pw.EdgeInsets.all(9),
-                      child: pw.Text('الإجمالي العام', style: pw.TextStyle(font: arabicFont),
-                        textAlign: pw.TextAlign.center)),
-                    pw.Padding(padding: const pw.EdgeInsets.all(9),
-                      child: pw.Text('${_fish.fold<int>(0, (n, f) => n + f.batches.fold<int>(0, (m, b) => m + b.length))}',
-                        textAlign: pw.TextAlign.center)),
-                    pw.Padding(padding: const pw.EdgeInsets.all(9),
-                      child: pw.Text(_number(_fish.fold<double>(0, (n, f) => n + f.total)),
-                        textAlign: pw.TextAlign.center)),
-                  ],
-                ),
               ],
             ),
           ],
@@ -414,20 +400,7 @@ class _WeightsHomeState extends State<WeightsHome> {
                         ),
                 ),
               ]),
-        bottomNavigationBar: _fish.isEmpty
-            ? null
-            : Container(
-                padding: const EdgeInsets.all(14),
-                color: const Color(0xFF151A20),
-                child: Text(
-                  'إجمالي جميع الأوزان: ${_number(_fish.fold<double>(0, (s, f) => s + f.total))} كجم',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
-                ),
-              ),
+        bottomNavigationBar: null,
       );
 
   Widget _entryPanel() => Card(
@@ -612,7 +585,6 @@ class ReportPreviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = fish.fold<double>(0, (sum, item) => sum + item.total);
     final count = fish.fold<int>(
       0,
       (sum, item) => sum + item.batches.fold<int>(0, (n, b) => n + b.length),
@@ -661,10 +633,6 @@ class ReportPreviewPage extends StatelessWidget {
                     trailing: Text('${number(item.total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 const Divider(height: 1),
-                ListTile(
-                  title: const Text('الإجمالي العام', style: TextStyle(fontWeight: FontWeight.bold)),
-                  trailing: Text('${number(total)} كجم', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF87601F))),
-                ),
               ],
             ),
           ),
