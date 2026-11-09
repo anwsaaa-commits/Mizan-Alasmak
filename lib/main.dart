@@ -612,7 +612,6 @@ class ReportPreviewPage extends StatelessWidget {
                     children: [
                       _stat('عدد الأنواع', '${fish.length}'),
                       _stat('عدد الوزنات', '$count'),
-                      _stat('الإجمالي كجم', number(total)),
                     ],
                   ),
                 ],
