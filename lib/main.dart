@@ -130,6 +130,59 @@ class _WeightsHomeState extends State<WeightsHome> {
     final pdf = pw.Document();
     final fontData = await rootBundle.load('assets/fonts/NotoSansArabic.ttf');
     final arabicFont = pw.Font.ttf(fontData);
+    pdf.addPage(pw.Page(
+      pageFormat: PdfPageFormat.a4.landscape,
+      theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicFont),
+      build: (context) => pw.Directionality(
+        textDirection: pw.TextDirection.rtl,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Center(child: pw.Text('التقرير الإجمالي لأوزان الأسماك',
+                style: pw.TextStyle(font: arabicFont, fontSize: 20))),
+            pw.SizedBox(height: 18),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey600, width: .7),
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  children: [
+                    for (final label in ['نوع السمك', 'عدد الوزنات', 'مجموع الوزن (كجم)'])
+                      pw.Padding(padding: const pw.EdgeInsets.all(10),
+                        child: pw.Text(label, textAlign: pw.TextAlign.center,
+                          style: pw.TextStyle(font: arabicFont))),
+                  ],
+                ),
+                for (final fish in _fish)
+                  pw.TableRow(children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text(fish.name, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text('\${fish.batches.fold<int>(0, (n, b) => n + b.length)}',
+                        textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text(_number(fish.total), textAlign: pw.TextAlign.center)),
+                  ]),
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text('الإجمالي العام', style: pw.TextStyle(font: arabicFont),
+                        textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text('\${_fish.fold<int>(0, (n, f) => n + f.batches.fold<int>(0, (m, b) => m + b.length))}',
+                        textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(9),
+                      child: pw.Text(_number(_fish.fold<double>(0, (n, f) => n + f.total)),
+                        textAlign: pw.TextAlign.center)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ));
     pdf.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4.landscape,
       theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicFont),
